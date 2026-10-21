@@ -145,6 +145,23 @@
         .modal-backdrop.show {
             opacity: 0.65;
         }
+        .info {
+            padding: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            overflow-wrap: anywhere;
+        }
+
+        /* Deixa todos os botões de ações do mesmo tamanho */
+        td .d-flex.justify-content-center.gap-2 .btn {
+            width: 94px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
 
     </style>
 </head>
@@ -162,6 +179,27 @@
     </nav>
 
     <main class="container py-5">
+               @if ($errors->any())
+           <div class="alert alert-danger" role="alert">
+               <strong>Verifique os campos do formulário:</strong>
+               <ul class="mb-0 mt-2">
+                   @foreach ($errors->all() as $erro)
+                       <li>{{ $erro }}</li>
+                   @endforeach
+               </ul>
+           </div>
+        @endif
+
+        @if(session('sucesso'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>
+               {{ session('sucesso') }}
+
+               <button type="button" class="btn-close"
+                       data-bs-dismiss="alert"
+                       aria-label="Fechar"></button>
+            </div>
+          @endif
 
         <div class="mb-4">
             <h2 class="page-title">Gerenciamento de Contatos</h2>
@@ -178,7 +216,7 @@
             </div>
 
             <div class="card-body">
-                <form action="{{ url('/save') }}" method="POST">
+                <form action="{{ url('/save') }}" method="POST" novalidate>
                     @csrf
 
                     <div class="row g-4">
@@ -243,6 +281,31 @@
                 </form>
             </div>
         </div>
+        <!-- Barra de pesquisa -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form action="{{ url('/') }}" method="GET">
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            name="busca"
+                            class="form-control"
+                            placeholder="Pesquisar contato pelo nome..."
+                            value="{{ $busca ?? '' }}"
+                        >
+
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-search me-2"></i>
+                            Pesquisar
+                        </button>
+
+                        <a href="{{ url('/') }}" class="btn btn-outline-secondary">
+                            Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <!-- Lista de contatos -->
         <div class="card">
@@ -291,7 +354,7 @@
                         <div class="d-flex justify-content-center gap-2">
 
                            <!-- Botão que abre a janela de edição -->
-                        <button type="button"
+                        <button type="submit"
                                 class="btn btn-secondary btn-sm"
                                 data-bs-toggle="modal"
                                 data-bs-target="#modalEditar{{ $c->id }}">
@@ -316,6 +379,16 @@
                                     Excluir
                                 </button>
                             </form>
+                            <button type="submit"
+                                    class="btn btn-primary btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalDetalhes{{ $c->id }}">
+
+                                <i class="bi bi-eye"></i>
+                                Ver Detalhes
+
+                            </button>
+                            
 
                         </div>
                     </td>
@@ -324,7 +397,9 @@
                             @empty
                             <tr>
                                 <td colspan="5" class="text-center text-muted py-4">
-                                    Nenhum contato cadastrado.
+                                    {{ ($busca ?? '') !== ''
+                                        ? 'Nenhum contato encontrado.'
+                                        : 'Nenhum contato cadastrado.' }}
                                 </td>
                             </tr>
                             @endforelse
@@ -464,6 +539,86 @@
         </div>
 
          @endforeach
+         
+<!-- Janela modal de detalhes -->
+@foreach ($contatos as $c)
+
+<div class="modal fade"
+     id="modalDetalhes{{ $c->id }}"
+     tabindex="-1"
+     aria-labelledby="tituloDetalhes{{ $c->id }}"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content modal-edicao">
+
+            <!-- Cabeçalho -->
+            <div class="modal-header">
+
+                <h5 class="modal-title"
+                    id="tituloDetalhes{{ $c->id }}">
+
+                    <i class="bi bi-person-vcard text-success me-2"></i>
+                    Detalhes do Contato
+
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Fechar">
+                </button>
+
+            </div>
+
+            <!-- Informações do contato -->
+            <div class="modal-body">
+
+                <div class="mb-3">
+                    <label class="form-label">Nome completo</label>
+                    <div class="info">{{ $c->nome }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Telefone</label>
+                    <div class="info">{{ $c->telefone }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">E-mail</label>
+                    <div class="info">{{ $c->email }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Endereço</label>
+                    <div class="info">{{ $c->endereco }}</div>
+                </div>
+
+            </div>
+
+            <!-- Rodapé -->
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-success"
+                        data-bs-dismiss="modal">
+
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Voltar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@endforeach
+
 
 </main>
 
